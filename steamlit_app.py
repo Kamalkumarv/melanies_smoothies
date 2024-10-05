@@ -1,6 +1,5 @@
 # Import python packages
-import streamlit as st
-from snowflake.snowpark.context import get_active_session
+import streamlit as st 
 from snowflake.snowpark.functions import col
 import pandas as pd
 
@@ -15,7 +14,8 @@ name_on_order = st.text_input("Name on Smoothie:","");
 
 
 # Get the current credentials
-session = get_active_session()
+ctx = st.connection("snowflake")
+session = ctx.session();
 #option = st.selectbox("What is your favorite fruit?",session.table("smoothies.public.fruit_options").columns[1])
 #st.write("You have selected: ", option);
  
