@@ -1,7 +1,8 @@
 # Import python packages
 import streamlit as st
+from snowflake.snowpark.context import get_active_session
 from snowflake.snowpark.functions import col
-
+import pandas as pd
 
 # Write directly to the app
 st.title(":cup_with_straw: Customize Your Smoothie :cup_with_straw:")
@@ -14,18 +15,16 @@ name_on_order = st.text_input("Name on Smoothie:","");
 
 
 # Get the current credentials
-ctx = st.connection("snowflake")
-session = ctx.session();
+session = get_active_session()
 #option = st.selectbox("What is your favorite fruit?",session.table("smoothies.public.fruit_options").columns[1])
 #st.write("You have selected: ", option);
  
-my_dataframe = session.table("smoothies.public.fruit_options").select((col('FRUIT_NAME')))
-st.dataframe(data=my_dataframe, use_container_width=True)
-
+my_dataframe = session.table("smoothies.public.fruit_options").select((col('FRUIT_NAME'),col('SEARCH_ON')))
+pd_df = my_dataframe.to_pandas()
+#st.dataframe(pd_df)
+#st.stop()
 
 ingrediants_list = st.multiselect('Choose up to 5 ingredients',my_dataframe)
-
-
 import requests
 if ingrediants_list:
     st.write(ingrediants_list)
@@ -34,8 +33,11 @@ if ingrediants_list:
 
     for item in ingrediants_list:
         ingredients_string += item +'  '
+        search_on = pd_df.loc[pd_df['FRUIT_NAME'] == item,'SEARCH_ON'].iloc[0]
+        st.write('The search value for ', item,' is ', search_on, '.')
+        st.write('https://fruityvice.com/api/fruit/'+search_on)
         st.subheader(item+' Nutrition Information')
-        fruityvice_response = requests.get("https://fruityvice.com/api/fruit/"+item)
+        fruityvice_response = requests.get("https://fruityvice.com/api/fruit/apple")                                            
         fv_df= st.dataframe(data = fruityvice_response.json(),use_container_width=True)
 
     
